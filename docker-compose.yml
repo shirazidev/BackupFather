@@ -1,0 +1,38 @@
+# Local testing: backupfather + a throwaway Postgres in one stack.
+# Usage: cp .env.example .env  &&  docker compose up --build
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppass
+      POSTGRES_DB: appdb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backupfather:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASES: "main:postgres://appuser:apppass@db:5432/appdb"
+      DESTINATIONS: "local"
+      SCHEDULER_ENABLED: "true"
+      BACKUP_CRON: "*/5 * * * *"   # every 5 min for demo; use 0 3 * * * in prod
+      RETENTION_DAYS: "7"
+      LOG_FORMAT: "text"
+      HEALTHCHECK_ENABLED: "true"
+      HEALTHCHECK_PORT: "8080"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backups:/backups
+
+volumes:
+  pgdata:

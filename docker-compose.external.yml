@@ -1,0 +1,16 @@
+# Realistic deployment: back up an EXTERNAL Postgres (e.g. managed DB / Coolify).
+# The database is NOT managed here — only backupfather runs.
+#
+# Usage: cp .env.example .env  (fill in real DATABASES + destination creds)
+#        docker compose -f docker-compose.external.yml up -d --build
+services:
+  backupfather:
+    build: .
+    restart: unless-stopped
+    env_file: .env               # DATABASES, DESTINATIONS, tokens, SMTP, etc.
+    ports:
+      - "8080:8080"              # expose /healthz to your uptime monitor / Coolify
+    volumes:
+      - ./backups:/backups       # keep a local copy + enable retention
+    # If SCHEDULER_ENABLED=false, run via host cron / k8s CronJob instead:
+    #   docker compose -f docker-compose.external.yml run --rm backupfather run --once

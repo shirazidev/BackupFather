@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/python -c \"import pydantic, pydantic_settings, pytest, requests, apscheduler; print\\('ok'\\)\")",
+      "Bash(.venv/bin/python -m pytest tests/test_config.py)",
+      "Bash(.venv/bin/python -m pip install -q -e . --no-deps)",
+      "Bash(.venv/bin/python -m pytest)"
+    ]
+  }
+}
