@@ -57,10 +57,12 @@ COPY backupfather /app/backupfather
 WORKDIR /app
 
 # Non-root user; owns the backup volume.
-RUN useradd --system --create-home --uid 10001 backup \
+# NB: the Debian base already has a system user named "backup" (uid 34), so we
+# use a distinct name to avoid a useradd collision.
+RUN useradd --system --create-home --uid 10001 bfather \
     && mkdir -p /backups \
-    && chown -R backup:backup /backups /app
-USER backup
+    && chown -R bfather:bfather /backups /app
+USER bfather
 
 VOLUME ["/backups"]
 EXPOSE 8080
