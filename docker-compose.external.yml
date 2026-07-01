@@ -6,9 +6,9 @@
 services:
   backupfather:
     # Pull the published image. Override the tag per client:
-    #   BACKUPFATHER_IMAGE=ghcr.io/ashzih2/backupfather:0.1.0 docker compose up -d
+    #   BACKUPFATHER_IMAGE=ghcr.io/shirazidev/backupfather:0.1.0 docker compose up -d
     # Or use `build: .` locally instead of `image:` to build from source.
-    image: ${BACKUPFATHER_IMAGE:-ghcr.io/ashzih2/backupfather:latest}
+    image: ${BACKUPFATHER_IMAGE:-ghcr.io/shirazidev/backupfather:latest}
     restart: unless-stopped
     env_file: .env               # DATABASES, DESTINATIONS, tokens, SMTP, etc.
     ports:

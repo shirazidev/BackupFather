@@ -45,6 +45,10 @@ uv run backupfather run --once
 uv run pytest
 ```
 
+> **Deploying to a real server?** See the
+> [Production deployment guide](docs/PRODUCTION.md) — Compose / external cron /
+> Kubernetes / Coolify, monitoring, restores, and a security checklist.
+
 ---
 
 ## Architecture
