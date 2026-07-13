@@ -1,7 +1,10 @@
 name: release
 
-# Build and publish the multi-arch image to GHCR on version tags (e.g. v0.1.0).
-# Also runs on manual dispatch. Uses the built-in GITHUB_TOKEN — no secrets to set.
+# Build and publish the multi-arch image to GHCR *and* Docker Hub on version
+# tags (e.g. v0.1.0). Also runs on manual dispatch. GHCR uses the built-in
+# GITHUB_TOKEN; Docker Hub needs two repo secrets:
+#   DOCKERHUB_USERNAME  -> your Docker Hub account (e.g. shirazidev)
+#   DOCKERHUB_TOKEN     -> a Docker Hub access token (Account Settings > Security)
 on:
   push:
     tags:
@@ -11,6 +14,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  DOCKERHUB_IMAGE: shirazidev/backup-father
 
 jobs:
   test:
@@ -41,11 +45,20 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
       - name: Derive image metadata (tags + labels)
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          # Same tags are applied to both registries in one build/push.
+          images: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            ${{ env.DOCKERHUB_IMAGE }}
           # v0.1.0 -> 0.1.0, 0.1, and latest; branch/sha for non-tag runs.
           tags: |
             type=semver,pattern={{version}}

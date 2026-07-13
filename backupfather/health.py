@@ -36,8 +36,14 @@ class HealthState:
     def snapshot(self) -> dict[str, object]:
         with self._lock:
             databases = dict(self._last)
-        healthy = bool(databases) and all(d["ok"] for d in databases.values())
-        return {"status": "ok" if healthy else "degraded", "databases": databases}
+        if not databases:
+            # No backup has run yet (e.g. waiting for the first scheduled run).
+            status = "starting"
+        elif all(d["ok"] for d in databases.values()):
+            status = "ok"
+        else:
+            status = "degraded"
+        return {"status": status, "databases": databases}
 
 
 def render(state: HealthState, path: str) -> tuple[int, bytes]:
@@ -48,8 +54,8 @@ def render(state: HealthState, path: str) -> tuple[int, bytes]:
     if path.rstrip("/") not in ("/healthz", ""):
         return 404, b'{"error":"not found"}'
     snapshot = state.snapshot()
-    # 200 while no run has happened yet (starting up), 503 once degraded.
-    code = 503 if snapshot["databases"] and snapshot["status"] != "ok" else 200
+    # 200 while starting (no run yet) or healthy; 503 only once a run has failed.
+    code = 503 if snapshot["status"] == "degraded" else 200
     return code, json.dumps(snapshot).encode()
 
 

@@ -20,6 +20,19 @@ def _fail() -> BackupResult:
     return BackupResult(db_name="main", ok=False, duration_seconds=1.0, failed_step=Step.DUMP)
 
 
+def test_snapshot_starting_before_first_run() -> None:
+    # No backup has run yet -> "starting", not "degraded".
+    snap = HealthState().snapshot()
+    assert snap["status"] == "starting"
+    assert snap["databases"] == {}
+
+
+def test_render_starting_returns_200() -> None:
+    code, body = render(HealthState(), "/healthz")
+    assert code == 200
+    assert json.loads(body)["status"] == "starting"
+
+
 def test_snapshot_ok() -> None:
     state = HealthState()
     state.record(_ok())
